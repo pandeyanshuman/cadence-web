@@ -1,4 +1,7 @@
-import { type UseQueryOptions } from '@tanstack/react-query';
+import {
+  type UseQueryOptions,
+  type QueryFunction,
+} from '@tanstack/react-query';
 
 import request from '@/utils/request';
 import { type RequestError } from '@/utils/request/request-error';
@@ -15,6 +18,26 @@ export default function getDomainDescriptionQueryOptions({
   DomainDescription,
   [string, UseDomainDescriptionParams]
 > {
+  return {
+    queryKey: ['describeDomain', { domain, cluster }],
+    queryFn: ({ queryKey: [_, params] }) =>
+      request(`/api/domains/${params.domain}/${params.cluster}`).then((res) =>
+        res.json()
+      ),
+  };
+}
+
+export function getSuspenseDomainDescriptionQueryOptions({
+  domain,
+  cluster,
+}: UseDomainDescriptionParams): {
+  queryKey: [string, UseDomainDescriptionParams];
+  queryFn: QueryFunction<
+    DomainDescription,
+    [string, UseDomainDescriptionParams],
+    never
+  >;
+} {
   return {
     queryKey: ['describeDomain', { domain, cluster }],
     queryFn: ({ queryKey: [_, params] }) =>

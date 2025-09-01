@@ -8,7 +8,8 @@ import DomainPageTabs from './domain-page-tabs/domain-page-tabs';
 import { type Props } from './domain-page.types';
 
 export default async function DomainPage(props: Props) {
-  const decodedParams = decodeUrlParams(props.params);
+  const params = await props.params;
+  const decodedParams = decodeUrlParams(params);
   return (
     <DomainPageContextProvider>
       <DomainPageHeader

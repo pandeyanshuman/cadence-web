@@ -26,5 +26,5 @@ export default function useConfigValue<K extends GetConfigKeys>(
 ): UseConfigValueResult<K> {
   return useQuery(
     getConfigValueQueryOptions<K>({ key, args: args as GetConfigArgs<K> })
-  );
+  ) as UseConfigValueResult<K>;
 }

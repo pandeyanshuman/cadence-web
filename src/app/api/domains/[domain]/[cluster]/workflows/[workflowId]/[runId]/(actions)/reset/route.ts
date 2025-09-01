@@ -7,12 +7,13 @@ import routeHandlersDefaultMiddlewares from '@/utils/route-handlers-middleware/c
 
 export async function POST(
   request: NextRequest,
-  options: { params: RouteParams }
+  options: { params: Promise<RouteParams> }
 ) {
+  const params = await options.params;
   return routeHandlerWithMiddlewares(
     resetWorkflow,
     request,
-    options,
+    { params },
     routeHandlersDefaultMiddlewares
   );
 }

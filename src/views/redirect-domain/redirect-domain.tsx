@@ -9,7 +9,9 @@ import { getCachedAllDomains } from '../domains-page/helpers/get-all-domains';
 import { type Props } from './redirect-domain.types';
 
 export default async function RedirectDomain(props: Props) {
-  const [encodedDomain, ...restParams] = props.params.domainParams;
+  const params = await props.params;
+  const searchParams = await props.searchParams;
+  const [encodedDomain, ...restParams] = params.domainParams;
   if (!encodedDomain) {
     throw new Error('Invalid domain URL param');
   }
@@ -45,7 +47,7 @@ export default async function RedirectDomain(props: Props) {
   redirect(
     queryString.stringifyUrl({
       url: baseUrl + (restParams.length > 0 ? `/${restParams.join('/')}` : ''),
-      query: props.searchParams,
+      query: searchParams,
     })
   );
 }

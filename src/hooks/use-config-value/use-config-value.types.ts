@@ -2,6 +2,7 @@ import {
   type UseQueryOptions,
   type UseQueryResult,
   type UseSuspenseQueryResult,
+  type QueryFunction,
 } from '@tanstack/react-query';
 
 import {
@@ -31,3 +32,14 @@ export type UseConfigQueryOptions<K extends GetConfigKeys> = UseQueryOptions<
   GetConfigResponse<K>,
   [string, GetConfigRequestQuery<K>]
 >;
+
+export type UseSuspenseConfigQueryOptions<K extends GetConfigKeys> = Omit<
+  UseConfigQueryOptions<K>,
+  'queryFn'
+> & {
+  queryFn: QueryFunction<
+    GetConfigResponse<K>,
+    [string, GetConfigRequestQuery<K>],
+    never
+  >;
+};

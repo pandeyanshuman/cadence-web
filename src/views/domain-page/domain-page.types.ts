@@ -2,7 +2,7 @@ import { type DescribeDomainResponse } from '@/route-handlers/describe-domain/de
 import type { WorkflowStatus } from '@/views/shared/workflow-status-tag/workflow-status-tag.types';
 
 export type Props = {
-  params: { domain: string; cluster: string };
+  params: Promise<{ domain: string; cluster: string }>;
   children: React.ReactNode;
 };
 

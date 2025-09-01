@@ -449,7 +449,9 @@ export default function WorkflowHistory({ params }: Props) {
                     ungroupedEndIndex: endIndex,
                   }))
                 }
-                virtuosoRef={ungroupedTableRef}
+                virtuosoRef={
+                  ungroupedTableRef as React.RefObject<VirtuosoHandle>
+                }
                 onResetToEventId={setResetToDecisionEventId}
               />
             </section>

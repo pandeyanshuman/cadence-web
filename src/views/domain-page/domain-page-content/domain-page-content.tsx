@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { use } from 'react';
 
 import { notFound } from 'next/navigation';
 
@@ -14,9 +14,8 @@ import {
 } from './domain-page-content.types';
 
 export default function DomainPageContent(props: Props) {
-  const decodedParams = decodeUrlParams(
-    props.params
-  ) as DomainPageContentParams;
+  const params = use(props.params);
+  const decodedParams = decodeUrlParams(params) as DomainPageContentParams;
   const tabConfig = domainPageTabsConfig[decodedParams.domainTab];
 
   if (!tabConfig) {

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { use } from 'react';
 
 import useStyletronClasses from '@/hooks/use-styletron-classes';
 
@@ -8,8 +8,11 @@ import workflowPageTabsConfig from '../config/workflow-page-tabs.config';
 import { cssStyles } from './workflow-page-tab-content.styles';
 import type { Props } from './workflow-page-tab-content.types';
 
-export default function WorkflowPageTabContent({ params }: Props) {
+export default function WorkflowPageTabContent({
+  params: paramsPromise,
+}: Props) {
   const { cls } = useStyletronClasses(cssStyles);
+  const params = use(paramsPromise);
   const selectedWorkflowTabName = params.workflowTab;
   const TabContent = workflowPageTabsConfig[selectedWorkflowTabName]?.content;
 

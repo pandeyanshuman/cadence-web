@@ -2,13 +2,9 @@ import React from 'react';
 
 import { render, screen, fireEvent, act } from '@/test-utils/rtl';
 
-import { WorkflowHistoryContext } from '../../workflow-history-context-provider/workflow-history-context-provider';
 import WorkflowHistoryFiltersType from '../workflow-history-filters-type';
 import { WORKFLOW_HISTORY_EVENT_FILTERING_TYPES_LABEL_MAP } from '../workflow-history-filters-type.constants';
-import {
-  type WorkflowHistoryFiltersTypeValue,
-  type WorkflowHistoryEventFilteringType,
-} from '../workflow-history-filters-type.types';
+import { type WorkflowHistoryFiltersTypeValue } from '../workflow-history-filters-type.types';
 
 describe('WorkflowHistoryFiltersType', () => {
   it('renders without errors', () => {

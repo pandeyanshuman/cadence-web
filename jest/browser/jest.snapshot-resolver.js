@@ -1,8 +1,7 @@
 const snapshotExtension = '.snapshot';
 
 module.exports = {
-  resolveSnapshotPath: (testPath) =>
-    testPath + snapshotExtension,
+  resolveSnapshotPath: (testPath) => testPath + snapshotExtension,
 
   resolveTestPath: (snapshotFilePath) =>
     snapshotFilePath.slice(0, -snapshotExtension.length),

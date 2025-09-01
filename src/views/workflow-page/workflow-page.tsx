@@ -7,7 +7,8 @@ import WorkflowPageTabs from './workflow-page-tabs/workflow-page-tabs';
 import type { Props } from './workflow-page.types';
 
 export default async function WorkflowPage({ params, children }: Props) {
-  const decodedParams = decodeUrlParams(params) as Props['params'];
+  const resolvedParams = await params;
+  const decodedParams = decodeUrlParams(resolvedParams);
 
   return (
     <>

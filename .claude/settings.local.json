@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm install)",
+      "Bash(npm run install-idl:*)",
+      "Bash(npm run generate:idl:*)",
+      "Bash(npm install:*)",
+      "Bash(npx @next/codemod@canary:*)",
+      "Bash(npm run test:unit:node:*)",
+      "Bash(timeout 30 npm run dev)",
+      "Bash(npm run build:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(chmod:*)",
+      "Bash(npx glob:*)",
+      "Bash(./node_modules/.bin/proto-loader-gen-types:*)",
+      "Bash(ln:*)",
+      "WebFetch(domain:tanstack.com)",
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(timeout 30 npm run build)",
+      "Bash(npm test)",
+      "Bash(npm run test:unit:browser:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

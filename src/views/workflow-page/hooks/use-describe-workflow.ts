@@ -45,6 +45,35 @@ const getDefaultConfigurations = ({
   ...queryOptions,
 });
 
+const getSuspenseConfigurations = ({
+  domain,
+  cluster,
+  workflowId,
+  runId,
+  refetchInterval = WORKFLOW_PAGE_STATUS_REFETCH_INTERVAL,
+  ...queryOptions
+}: UseDescribeWorkflowParams) => ({
+  queryKey: [
+    'describe_workflow',
+    { domain, cluster, workflowId, runId },
+  ] as DescribeWorkflowQueryKey,
+  queryFn: ({ queryKey: [_, p] }: { queryKey: DescribeWorkflowQueryKey }) =>
+    request(
+      `/api/domains/${p.domain}/${p.cluster}/workflows/${p.workflowId}/${p.runId}`
+    ).then((res) => res.json()),
+  refetchInterval: (query: { state: { data?: DescribeWorkflowResponse } }) => {
+    const { closeStatus } = query.state.data?.workflowExecutionInfo || {};
+    if (
+      !closeStatus ||
+      closeStatus === 'WORKFLOW_EXECUTION_CLOSE_STATUS_INVALID'
+    )
+      return refetchInterval;
+
+    return false;
+  },
+  ...queryOptions,
+});
+
 export function useDescribeWorkflow(params: UseQueryDescribeWorkflowParams) {
   return useQuery<
     DescribeWorkflowResponse,
@@ -62,5 +91,5 @@ export function useSuspenseDescribeWorkflow(
     RequestError,
     DescribeWorkflowResponse,
     DescribeWorkflowQueryKey
-  >(getDefaultConfigurations(params));
+  >(getSuspenseConfigurations(params));
 }

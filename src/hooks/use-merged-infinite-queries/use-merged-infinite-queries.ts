@@ -66,13 +66,17 @@ export default function useMergedInfiniteQueries<
       return new InfiniteQueryObserver(queryClient, q);
     });
 
-    setQueryResults(observers.map((ob) => ob.getCurrentResult()));
+    setQueryResults(
+      observers.map(
+        (ob) => ob.getCurrentResult() as SingleInfiniteQueryResult<TResponse>
+      )
+    );
 
     const unsubscribes = observers.map((observer, index) =>
       observer.subscribe((result) => {
         setQueryResults((v) => {
           const newV = [...v];
-          newV[index] = result;
+          newV[index] = result as SingleInfiniteQueryResult<TResponse>;
           return newV;
         });
       })

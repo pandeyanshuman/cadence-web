@@ -52,9 +52,6 @@ const nextConfig = {
     ];
   },
   output: BUILD_OUTPUT,
-  experimental: {
-    instrumentationHook: true,
-  },
 };
 
 export default nextConfig;
