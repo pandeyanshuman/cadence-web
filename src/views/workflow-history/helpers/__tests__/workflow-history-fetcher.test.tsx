@@ -6,8 +6,8 @@ import { waitFor } from '@/test-utils/rtl';
 import { type GetWorkflowHistoryResponse } from '@/route-handlers/get-workflow-history/get-workflow-history.types';
 import mswMockEndpoints from '@/test-utils/msw-mock-handlers/helper/msw-mock-endpoints';
 
-import workflowHistoryMultiPageFixture from '../../__fixtures__/workflow-history-multi-page-fixture';
 import { scheduleActivityTaskEvent } from '../../__fixtures__/workflow-history-activity-events';
+import workflowHistoryMultiPageFixture from '../../__fixtures__/workflow-history-multi-page-fixture';
 import WorkflowHistoryFetcher from '../workflow-history-fetcher';
 
 const RETRY_DELAY = 3000;

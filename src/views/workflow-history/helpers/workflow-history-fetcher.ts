@@ -224,11 +224,11 @@ export default class WorkflowHistoryFetcher {
                 ? WORKFLOW_HISTORY_PAGE_SIZE_CONFIG
                 : WORKFLOW_HISTORY_FIRST_PAGE_SIZE_CONFIG,
               waitForNewEvent:
-                this.hasReceivedEmptyPage &&
-                (params.waitForNewEvent ?? false),
+                this.hasReceivedEmptyPage && (params.waitForNewEvent ?? false),
             } satisfies WorkflowHistoryQueryParams,
           })
-        ).then((res) => res.json())
+        )
+          .then((res) => res.json())
           .then((data: GetWorkflowHistoryResponse) => {
             if (data.history?.events?.length === 0) {
               this.hasReceivedEmptyPage = true;
