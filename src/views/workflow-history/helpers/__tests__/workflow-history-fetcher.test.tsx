@@ -7,6 +7,7 @@ import { type GetWorkflowHistoryResponse } from '@/route-handlers/get-workflow-h
 import mswMockEndpoints from '@/test-utils/msw-mock-handlers/helper/msw-mock-endpoints';
 
 import workflowHistoryMultiPageFixture from '../../__fixtures__/workflow-history-multi-page-fixture';
+import { scheduleActivityTaskEvent } from '../../__fixtures__/workflow-history-activity-events';
 import WorkflowHistoryFetcher from '../workflow-history-fetcher';
 
 const RETRY_DELAY = 3000;
@@ -329,21 +330,119 @@ describe(WorkflowHistoryFetcher.name, () => {
       jest.useRealTimers();
     }
   });
+
+  it('should send waitForNewEvent=false before first empty page and true after', async () => {
+    const emptyPageFixture: GetWorkflowHistoryResponse[] = [
+      // Page 1: has events
+      {
+        history: { events: [scheduleActivityTaskEvent] },
+        rawHistory: [],
+        archived: false,
+        nextPageToken: 'page2',
+      },
+      // Page 2: empty events (end of available events)
+      {
+        history: { events: [] },
+        rawHistory: [],
+        archived: false,
+        nextPageToken: 'page3',
+      },
+      // Page 3: empty events (long poll page)
+      {
+        history: { events: [] },
+        rawHistory: [],
+        archived: false,
+        nextPageToken: '',
+      },
+    ];
+
+    const { fetcher, getCapturedWaitForNewEvent } = setup(queryClient, {
+      waitForNewEvent: true,
+      responses: emptyPageFixture,
+    });
+
+    fetcher.start();
+
+    await waitFor(() => {
+      const state = fetcher.getCurrentState();
+      expect(state.hasNextPage).toBe(false);
+      expect(state.data?.pages).toHaveLength(3);
+    });
+
+    const waitForNewEventValues = getCapturedWaitForNewEvent();
+    // Page 1: no empty page received yet, so waitForNewEvent=false
+    expect(waitForNewEventValues[0]).toBe('false');
+    // Page 2: still no empty page received yet, so waitForNewEvent=false
+    expect(waitForNewEventValues[1]).toBe('false');
+    // Page 3: after page 2 returned empty, so waitForNewEvent=true
+    expect(waitForNewEventValues[2]).toBe('true');
+  });
+
+  it('should send waitForNewEvent=false for all requests when param is not set', async () => {
+    const emptyPageFixture: GetWorkflowHistoryResponse[] = [
+      {
+        history: { events: [scheduleActivityTaskEvent] },
+        rawHistory: [],
+        archived: false,
+        nextPageToken: 'page2',
+      },
+      {
+        history: { events: [] },
+        rawHistory: [],
+        archived: false,
+        nextPageToken: 'page3',
+      },
+      {
+        history: { events: [] },
+        rawHistory: [],
+        archived: false,
+        nextPageToken: '',
+      },
+    ];
+
+    const { fetcher, getCapturedWaitForNewEvent } = setup(queryClient, {
+      responses: emptyPageFixture,
+    });
+
+    fetcher.start();
+
+    await waitFor(() => {
+      const state = fetcher.getCurrentState();
+      expect(state.hasNextPage).toBe(false);
+      expect(state.data?.pages).toHaveLength(3);
+    });
+
+    const waitForNewEventValues = getCapturedWaitForNewEvent();
+    expect(waitForNewEventValues[0]).toBe('false');
+    expect(waitForNewEventValues[1]).toBe('false');
+    expect(waitForNewEventValues[2]).toBe('false');
+  });
 });
 
-function setup(client: QueryClient, options: { failOnPages?: number[] } = {}) {
+function setup(
+  client: QueryClient,
+  options: {
+    failOnPages?: number[];
+    waitForNewEvent?: boolean;
+    responses?: GetWorkflowHistoryResponse[];
+  } = {}
+) {
   const params = {
     domain: 'test-domain',
     cluster: 'test-cluster',
     workflowId: 'test-workflow-id',
     runId: 'test-run-id',
     pageSize: 10,
+    ...(options.waitForNewEvent !== undefined && {
+      waitForNewEvent: options.waitForNewEvent,
+    }),
   };
 
-  const { getCapturedPageSizes } = mockHistoryEndpoint(
-    workflowHistoryMultiPageFixture,
-    options.failOnPages
-  );
+  const { getCapturedPageSizes, getCapturedWaitForNewEvent } =
+    mockHistoryEndpoint(
+      options.responses ?? workflowHistoryMultiPageFixture,
+      options.failOnPages
+    );
   const fetcher = new WorkflowHistoryFetcher(client, params);
   hoistedFetcher = fetcher;
 
@@ -363,6 +462,7 @@ function setup(client: QueryClient, options: { failOnPages?: number[] } = {}) {
     params,
     waitForData,
     getCapturedPageSizes,
+    getCapturedWaitForNewEvent,
   };
 }
 
@@ -371,6 +471,7 @@ function mockHistoryEndpoint(
   failOnPages: number[] = []
 ) {
   const capturedPageSizes: string[] = [];
+  const capturedWaitForNewEvent: string[] = [];
 
   mswMockEndpoints([
     {
@@ -381,8 +482,10 @@ function mockHistoryEndpoint(
         const url = new URL(request.url);
         const nextPage = url.searchParams.get('nextPage');
         const pageSize = url.searchParams.get('pageSize');
+        const waitForNewEvent = url.searchParams.get('waitForNewEvent');
 
         capturedPageSizes.push(pageSize ?? '');
+        capturedWaitForNewEvent.push(waitForNewEvent ?? '');
 
         // Determine current page number based on nextPage param
         let pageNumber = 1;
@@ -413,5 +516,6 @@ function mockHistoryEndpoint(
 
   return {
     getCapturedPageSizes: () => capturedPageSizes,
+    getCapturedWaitForNewEvent: () => capturedWaitForNewEvent,
   };
 }

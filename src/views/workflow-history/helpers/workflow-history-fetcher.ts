@@ -30,6 +30,7 @@ export default class WorkflowHistoryFetcher {
     (res: WorkflowHistoryQueryResult) => void
   > | null = null;
   private shouldContinue: ShouldContinueCallback = () => true;
+  private hasReceivedEmptyPage: boolean = false;
 
   /**
    * Creates a new WorkflowHistoryFetcher instance.
@@ -222,10 +223,18 @@ export default class WorkflowHistoryFetcher {
               pageSize: pageParam
                 ? WORKFLOW_HISTORY_PAGE_SIZE_CONFIG
                 : WORKFLOW_HISTORY_FIRST_PAGE_SIZE_CONFIG,
-              waitForNewEvent: params.waitForNewEvent ?? false,
+              waitForNewEvent:
+                this.hasReceivedEmptyPage &&
+                (params.waitForNewEvent ?? false),
             } satisfies WorkflowHistoryQueryParams,
           })
-        ).then((res) => res.json()),
+        ).then((res) => res.json())
+          .then((data: GetWorkflowHistoryResponse) => {
+            if (data.history?.events?.length === 0) {
+              this.hasReceivedEmptyPage = true;
+            }
+            return data;
+          }),
       initialPageParam: undefined,
       getNextPageParam: (lastPage: GetWorkflowHistoryResponse) => {
         return lastPage.nextPageToken ? lastPage.nextPageToken : undefined;
