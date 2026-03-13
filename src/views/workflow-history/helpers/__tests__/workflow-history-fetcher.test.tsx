@@ -331,7 +331,7 @@ describe(WorkflowHistoryFetcher.name, () => {
     }
   });
 
-  it('should send waitForNewEvent=false before first empty page and true after', async () => {
+  it('should send waitForNewEvent=true for all requests when param is set', async () => {
     const emptyPageFixture: GetWorkflowHistoryResponse[] = [
       // Page 1: has events
       {
@@ -340,14 +340,14 @@ describe(WorkflowHistoryFetcher.name, () => {
         archived: false,
         nextPageToken: 'page2',
       },
-      // Page 2: empty events (end of available events)
+      // Page 2: empty events (server keeps nextPageToken for long-polling)
       {
         history: { events: [] },
         rawHistory: [],
         archived: false,
         nextPageToken: 'page3',
       },
-      // Page 3: empty events (long poll page)
+      // Page 3: empty events (last page)
       {
         history: { events: [] },
         rawHistory: [],
@@ -370,11 +370,9 @@ describe(WorkflowHistoryFetcher.name, () => {
     });
 
     const waitForNewEventValues = getCapturedWaitForNewEvent();
-    // Page 1: no empty page received yet, so waitForNewEvent=false
-    expect(waitForNewEventValues[0]).toBe('false');
-    // Page 2: still no empty page received yet, so waitForNewEvent=false
-    expect(waitForNewEventValues[1]).toBe('false');
-    // Page 3: after page 2 returned empty, so waitForNewEvent=true
+    // All requests should use waitForNewEvent=true when param is set
+    expect(waitForNewEventValues[0]).toBe('true');
+    expect(waitForNewEventValues[1]).toBe('true');
     expect(waitForNewEventValues[2]).toBe('true');
   });
 
@@ -392,12 +390,6 @@ describe(WorkflowHistoryFetcher.name, () => {
         archived: false,
         nextPageToken: 'page3',
       },
-      {
-        history: { events: [] },
-        rawHistory: [],
-        archived: false,
-        nextPageToken: '',
-      },
     ];
 
     const { fetcher, getCapturedWaitForNewEvent } = setup(queryClient, {
@@ -409,13 +401,12 @@ describe(WorkflowHistoryFetcher.name, () => {
     await waitFor(() => {
       const state = fetcher.getCurrentState();
       expect(state.hasNextPage).toBe(false);
-      expect(state.data?.pages).toHaveLength(3);
     });
 
     const waitForNewEventValues = getCapturedWaitForNewEvent();
+    // All requests should use waitForNewEvent=false when param is not set
     expect(waitForNewEventValues[0]).toBe('false');
     expect(waitForNewEventValues[1]).toBe('false');
-    expect(waitForNewEventValues[2]).toBe('false');
   });
 });
 
@@ -509,6 +500,14 @@ function mockHistoryEndpoint(
         const responseIndex = pageNumber - 1;
         const response =
           responses[responseIndex] || responses[responses.length - 1];
+
+        // Simulate real server behavior: when waitForNewEvent is false
+        // and the page is empty, the server doesn't return nextPageToken
+        const isEmpty = response.history?.events?.length === 0;
+        if (isEmpty && waitForNewEvent === 'false') {
+          return HttpResponse.json({ ...response, nextPageToken: '' });
+        }
+
         return HttpResponse.json(response);
       },
     },
